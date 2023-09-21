@@ -59,7 +59,7 @@ const removeContact = async (contactId) => {
   } catch (e) {
     console.error(e);
     console.warn(
-      `Contact with ID ${contactId} not found. No changes were made.`
+      `Contact with ID ${contactId} not found. No changes were made.`,
     );
   }
 };
@@ -68,17 +68,19 @@ const removeContact = async (contactId) => {
  * @param {Object} contact - The contact object with properties (name, email, phone).
  * @returns {Promise<Object|null>} A Promise that resolves to the added contact or null if there was an error.
  */
-const addContact = async (body) => {
-  const { name, email, phone } = body;
-  const id = nanoid();
+const addContact = async (contact) => {
+  const newContact = {
+    id: nanoid(),
+    ...contact,
+  };
   try {
     const data = await listContacts();
     if (!data) {
       throw new Error(`Помилка при спробі отримати контакти`);
     }
-    const updateData = [...data, { id, name, email, phone }];
+    const updateData = [...data, newContact];
     await fs.writeFile(filePath, JSON.stringify(updateData, null, "\t"));
-    return body;
+    return newContact;
   } catch (e) {
     console.error(e);
   }

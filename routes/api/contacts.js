@@ -3,6 +3,7 @@ const {
   listContacts,
   getContactById,
   addContact,
+  removeContact,
 } = require("../../models/contacts");
 const { HttpError } = require("../../helpers");
 const schema = require("../../schema/schema");
@@ -46,7 +47,7 @@ router.get("/:contactId", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
   try {
     const { error } = schema.validate(req.body);
-
+    // console.log("errore", error);
     if (error) {
       throw HttpError(400, error.message);
     }
@@ -60,13 +61,26 @@ router.post("/", async (req, res, next) => {
     if (error.statusCode) {
       res.status(error.statusCode).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Помилка сервера" });
+      res.status(400).json({ message: error.message });
     }
   }
 });
 
 router.delete("/:contactId", async (req, res, next) => {
-  res.json({ message: "template message" });
+  const contactId = req.params.contactId;
+
+  try {
+    const result = await removeContact(contactId);
+
+    if (result) {
+      res.status(200).json({ message: "Contact deleted" });
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.put("/:contactId", async (req, res, next) => {
