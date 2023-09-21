@@ -4,17 +4,19 @@ const {
   getContactById,
   addContact,
   removeContact,
+  updateContact,
 } = require("../../models/contacts");
 const { HttpError } = require("../../helpers");
-const schema = require("../../schema/schema");
+const { schemaAdd, schemaUpd } = require("../../schema/schema");
 
 const router = express.Router();
 
 /**
- * Отримати список всіх контактів.
- * @route GET /contacts
- * @returns {Object[]} - Масив контактів.
- * @throws {Error} - Помилка сервера, якщо щось пішло не так при отриманні списку контактів.
+ * Retrieves the list of all contacts.
+ *
+ * @route GET /api/contacts
+ * @throws {Error} - Throws an HTTP error with a 500 status code if there is a server error.
+ * @returns {Array} - An array of contact objects.
  */
 router.get("/", async (req, res, next) => {
   const contacts = await listContacts();
@@ -22,69 +24,106 @@ router.get("/", async (req, res, next) => {
 });
 
 /**
- * Отримати контакт за його унікальним ідентифікатором.
- * @route GET /contacts/:contactId
- * @param {string} contactId.path.required - Унікальний ідентифікатор контакту.
- * @returns {Object|null} - Об'єкт контакту або null, якщо контакт не знайдено.
- * @throws {Error} - Помилка сервера, якщо щось пішло не так при пошуку контакту.
+ * Retrieves a contact by its unique identifier (ID).
+ *
+ * @route GET /api/contacts/:contactId
+ * @param {string} req.params.contactId.path.required - The unique identifier of the contact to retrieve.
+ * @throws {HttpError} - Throws an HTTP error with a 404 status code if the contact is not found.
+ * @returns {Object|null} - An object representing the retrieved contact or null if not found.
  */
 router.get("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const contact = await getContactById(contactId);
 
-    if (contact === null) {
-      res.status(404).json({ message: "Not found" });
-    } else {
-      res.json(contact);
+    if (!contact) {
+      throw HttpError(404, "Not found");
     }
+
+    res.status(200).json(contact);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Помилка сервера" });
+    next(error);
   }
 });
 
+/**
+ * Creates a new contact and adds it to the list of contacts.
+ *
+ * @route POST /api/contacts
+ * @param {object} req.body.required - The contact object with properties (name, email, phone).
+ * @throws {HttpError} - Throws an HTTP error with a 400 status code if the request body is invalid.
+ * @returns {object} - Returns an object with the newly created contact
+ */
 router.post("/", async (req, res, next) => {
   try {
-    const { error } = schema.validate(req.body);
-    // console.log("errore", error);
+    const { error } = schemaAdd.validate(req.body);
+
     if (error) {
       throw HttpError(400, error.message);
     }
 
-    const result = await addContact(req.body);
+    const contact = await addContact(req.body);
 
-    res.status(201).json(result);
+    res.status(201).json(contact);
   } catch (error) {
-    console.error(error);
-
-    if (error.statusCode) {
-      res.status(error.statusCode).json({ error: error.message });
-    } else {
-      res.status(400).json({ message: error.message });
-    }
+    next(error);
   }
 });
 
+/**
+ * Deletes a contact by its unique identifier (ID).
+ *
+ * @route DELETE /api/contacts/:contactId
+ * @param {string} req.params.contactId.path.required - The unique identifier of the contact to delete.
+ * @throws {HttpError} - Throws an HTTP error with a 404 status code if the contact is not found.
+ * @returns {object} - An object with a success message if the contact is successfully deleted.
+ */
 router.delete("/:contactId", async (req, res, next) => {
   const contactId = req.params.contactId;
 
   try {
     const result = await removeContact(contactId);
 
-    if (result) {
-      res.status(200).json({ message: "Contact deleted" });
-    } else {
-      res.status(404).json({ message: "Not found" });
+    if (!result) {
+      throw HttpError(404, "Not found");
     }
+    res.status(200).json({ message: "contact deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
+/**
+ * Updates the information of a contact with the specified identifier.
+ *
+ * @route PUT /api/contacts/:contactId
+ * @param {string} req.params.contactId.path.required - The unique identifier of the contact to update.
+ * @param {object} req.body.body.required - An object containing the new data to update the contact with.
+ *                                        (Must accept at least one parameter)
+ * @throws {HttpError} - Throws an HTTP error with a 400 status code if the request body is invalid.
+ *                      Throws an HTTP error with a 404 status code if the contact is not found.
+ * @returns {object} - An object representing the updated contact information.
+ */
 router.put("/:contactId", async (req, res, next) => {
-  res.json({ message: "template message" });
+  try {
+    const { error } = schemaUpd.validate(req.body);
+
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+
+    const { contactId } = req.params;
+
+    const contact = await updateContact(contactId, req.body);
+
+    if (!contact) {
+      throw HttpError(404, "Not found");
+    }
+    res.json(contact);
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;

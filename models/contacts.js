@@ -13,7 +13,6 @@ const listContacts = async () => {
   try {
     const data = await fs.readFile(filePath, "utf8");
     const contacts = JSON.parse(data);
-    console.log(contacts);
     return contacts;
   } catch (error) {
     console.error(error);
@@ -59,10 +58,11 @@ const removeContact = async (contactId) => {
   } catch (e) {
     console.error(e);
     console.warn(
-      `Contact with ID ${contactId} not found. No changes were made.`,
+      `Contact with ID ${contactId} not found. No changes were made.`
     );
   }
 };
+
 /**
  * Add a new contact to the list of contacts.
  * @param {Object} contact - The contact object with properties (name, email, phone).
@@ -86,7 +86,18 @@ const addContact = async (contact) => {
   }
 };
 
-const updateContact = async (contactId, body) => {
+/**
+ * Updates the information of a contact with the specified identifier.
+ *
+ * @param {string} contactId - The unique identifier of the contact to update.
+ * @param {object} data - An object containing the new data to update the contact with.
+ *                       (Must accept at least one parameter)
+ * @returns {Promise<Object|null>} - Returns the updated contact information as an object
+ *                                  or null if the contact is not found.
+ * @throws {Error} - Throws an error if there is an issue with reading/writing to the file
+ *                  or any other error.
+ */
+const updateContact = async (contactId, data) => {
   const contacts = await listContacts();
 
   const contact = contacts.find((contact) => contact.id === contactId);
@@ -97,7 +108,7 @@ const updateContact = async (contactId, body) => {
 
   const updatedContact = {
     ...contact,
-    ...body,
+    ...data,
   };
 
   contacts[contacts.indexOf(contact)] = updatedContact;
