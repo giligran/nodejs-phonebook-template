@@ -13,6 +13,7 @@ const listContacts = async () => {
   try {
     const data = await fs.readFile(filePath, "utf8");
     const contacts = JSON.parse(data);
+    console.log(contacts);
     return contacts;
   } catch (error) {
     console.error(error);
@@ -28,7 +29,7 @@ const listContacts = async () => {
 const getContactById = async (contactId) => {
   try {
     const contacts = await listContacts();
-    const contact = contacts.filter((item) => item.id === contactId);
+    const contact = contacts.find((item) => item.id === contactId);
     return contact || null;
   } catch (e) {
     console.error(e);
@@ -57,7 +58,9 @@ const removeContact = async (contactId) => {
     return contactToDelete;
   } catch (e) {
     console.error(e);
-    console.warn(`Contact with ID ${contactId} not found. No changes were made.`);
+    console.warn(
+      `Contact with ID ${contactId} not found. No changes were made.`
+    );
   }
 };
 /**
@@ -102,11 +105,10 @@ const updateContact = async (contactId, body) => {
   return updatedContact;
 };
 
-
 module.exports = {
   listContacts,
   getContactById,
   removeContact,
   addContact,
   updateContact,
-}
+};
