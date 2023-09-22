@@ -16,7 +16,7 @@ const ctrlWrapper = require("../helpers/ctrWrapper");
  * @throws {Error} - Throws an HTTP error with a 500 status code if there is a server error.
  * @returns {Array} - An array of contact objects.
  */
-const getAll = async (req, res, next) => {
+const getAll = async (req, res) => {
   const contacts = await listContacts();
   res.json(contacts);
 };
@@ -29,7 +29,7 @@ const getAll = async (req, res, next) => {
  * @throws {HttpError} - Throws an HTTP error with a 404 status code if the contact is not found.
  * @returns {Object|null} - An object representing the retrieved contact or null if not found.
  */
-const getById = async (req, res, next) => {
+const getById = async (req, res) => {
   const contactId = req.params.contactId;
   const contact = await getContactById(contactId);
 
@@ -48,7 +48,7 @@ const getById = async (req, res, next) => {
  * @throws {HttpError} - Throws an HTTP error with a 400 status code if the request body is invalid.
  * @returns {object} - Returns an object with the newly created contact
  */
-const add = async (req, res, next) => {
+const add = async (req, res) => {
   const { error } = schemaAdd.validate(req.body);
 
   if (error) {
@@ -68,7 +68,7 @@ const add = async (req, res, next) => {
  * @throws {HttpError} - Throws an HTTP error with a 404 status code if the contact is not found.
  * @returns {object} - An object with a success message if the contact is successfully deleted.
  */
-const remove = async (req, res, next) => {
+const remove = async (req, res) => {
   const contactId = req.params.contactId;
   const result = await removeContact(contactId);
 
@@ -90,7 +90,7 @@ const remove = async (req, res, next) => {
  *                      Throws an HTTP error with a 404 status code if the contact is not found.
  * @returns {object} - An object representing the updated contact information.
  */
-const updateById = async (req, res, next) => {
+const updateById = async (req, res) => {
   if (Object.keys(req.body).length === 0) {
     throw HttpError(400, "No update data provided");
   }
