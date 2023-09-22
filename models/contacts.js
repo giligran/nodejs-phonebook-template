@@ -10,14 +10,9 @@ const filePath = path.join(__dirname, "/contacts.json");
  * @returns {Promise<Array>} A Promise that resolves to an array of contacts.
  */
 const listContacts = async () => {
-  try {
-    const data = await fs.readFile(filePath, "utf8");
-    const contacts = JSON.parse(data);
-    return contacts;
-  } catch (error) {
-    console.error(error);
-    console.warn("An error occurred while reading contacts data.");
-  }
+  const data = await fs.readFile(filePath, "utf8");
+  const contacts = JSON.parse(data);
+  return contacts;
 };
 
 /**
@@ -40,6 +35,7 @@ const removeContact = async (contactId) => {
   const data = await listContacts();
 
   const contactIndex = data.findIndex((item) => item.id === contactId);
+
   if (contactIndex === -1) {
     return null;
   }
@@ -86,18 +82,20 @@ const addContact = async (contact) => {
 const updateContact = async (contactId, data) => {
   const contacts = await listContacts();
 
-  const contact = contacts.findIndex((contact) => contact.id === contactId);
+  const contactIndex = contacts.findIndex(
+    (contact) => contact.id === contactId
+  );
 
-  if (!contact) {
+  if (contactIndex === -1) {
     return null;
   }
 
   const updatedContact = {
-    ...contact,
+    ...contacts[contactIndex],
     ...data,
   };
 
-  contacts[contacts.indexOf(contact)] = updatedContact;
+  contacts[contactIndex] = updatedContact;
 
   await fs.writeFile(filePath, JSON.stringify(contacts, null, 2));
 
