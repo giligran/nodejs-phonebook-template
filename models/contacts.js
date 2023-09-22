@@ -26,14 +26,9 @@ const listContacts = async () => {
  * @returns {Promise<Object|null>} A Promise that resolves to the retrieved contact or null if not found.
  */
 const getContactById = async (contactId) => {
-  try {
-    const contacts = await listContacts();
-    const contact = contacts.find((item) => item.id === contactId);
-    return contact || null;
-  } catch (e) {
-    console.error(e);
-    console.warn(`Contact with ID ${contactId} not found.`);
-  }
+  const contacts = await listContacts();
+  const contact = contacts.find((item) => item.id === contactId);
+  return contact || null;
 };
 
 /**
@@ -42,25 +37,18 @@ const getContactById = async (contactId) => {
  * @returns {Promise<Object|null>} A Promise that resolves to the removed contact or null if not found.
  */
 const removeContact = async (contactId) => {
-  try {
-    const data = await listContacts();
+  const data = await listContacts();
 
-    const contactToDelete = data.find((item) => item.id === contactId);
-    if (!contactToDelete) {
-      return null;
-    }
-
-    const updateContacts = data.filter((item) => item.id !== contactId);
-
-    await fs.writeFile(filePath, JSON.stringify(updateContacts, null, "\t"));
-
-    return contactToDelete;
-  } catch (e) {
-    console.error(e);
-    console.warn(
-      `Contact with ID ${contactId} not found. No changes were made.`
-    );
+  const contactIndex = data.findIndex((item) => item.id === contactId);
+  if (contactIndex === -1) {
+    return null;
   }
+
+  const deletedContact = data.splice(contactIndex, 1);
+
+  await fs.writeFile(filePath, JSON.stringify(data, null, "\t"));
+
+  return deletedContact;
 };
 
 /**
@@ -73,17 +61,15 @@ const addContact = async (contact) => {
     id: nanoid(),
     ...contact,
   };
-  try {
-    const data = await listContacts();
-    if (!data) {
-      throw new Error(`Помилка при спробі отримати контакти`);
-    }
-    const updateData = [...data, newContact];
-    await fs.writeFile(filePath, JSON.stringify(updateData, null, "\t"));
-    return newContact;
-  } catch (e) {
-    console.error(e);
+  const data = await listContacts();
+
+  if (!data) {
+    throw new Error(`Помилка при спробі отримати контакти`);
   }
+  
+  data.push(newContact);
+  await fs.writeFile(filePath, JSON.stringify(data, null, "\t"));
+  return newContact;
 };
 
 /**

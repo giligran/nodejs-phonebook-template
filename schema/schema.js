@@ -9,8 +9,8 @@ const schemaAdd = Joi.object({
 const schemaUpd = Joi.object({
   name: Joi.string(),
   email: Joi.string(),
-  number: Joi.string(),
-}).xor("name", "email", "number");
+  phone: Joi.string(),
+})
 
 module.exports = {
   schemaAdd,

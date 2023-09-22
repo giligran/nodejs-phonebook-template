@@ -107,6 +107,10 @@ router.delete("/:contactId", async (req, res, next) => {
  */
 router.put("/:contactId", async (req, res, next) => {
   try {
+    if (Object.keys(req.body).length === 0) {
+      throw HttpError(400, "No update data provided");
+    }
+    
     const { error } = schemaUpd.validate(req.body);
 
     if (error) {
