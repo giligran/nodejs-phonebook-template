@@ -66,7 +66,7 @@ const addContact = async (contact) => {
   if (!data) {
     throw new Error(`Помилка при спробі отримати контакти`);
   }
-  
+
   data.push(newContact);
   await fs.writeFile(filePath, JSON.stringify(data, null, "\t"));
   return newContact;
@@ -86,7 +86,7 @@ const addContact = async (contact) => {
 const updateContact = async (contactId, data) => {
   const contacts = await listContacts();
 
-  const contact = contacts.find((contact) => contact.id === contactId);
+  const contact = contacts.findIndex((contact) => contact.id === contactId);
 
   if (!contact) {
     return null;
