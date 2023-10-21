@@ -7,15 +7,15 @@ const subscriptionList = ["starter", "pro", "business"];
 
 const userSchema = new Schema(
   {
+    password: {
+      type: String,
+      minlength: 6,
+      required: true,
+    },
     email: {
       type: String,
       match: emailRegexp,
       unique: true,
-      required: true,
-    },
-    password: {
-      type: String,
-      minlength: 6,
       required: true,
     },
     subscription: {
