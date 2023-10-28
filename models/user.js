@@ -2,58 +2,61 @@ const { Schema, model } = require("mongoose");
 const { handleMongooseError } = require("../helpers");
 const Joi = require("joi");
 
-const contactSchema = new Schema(
+const emailRegexp = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,8})+$/;
+const subscriptionList = ["starter", "pro", "business"];
+
+const userSchema = new Schema(
   {
-    name: {
-      type: String,
-      required: [true, "Set name for contact"],
-    },
     email: {
       type: String,
-      required: [true, "Set email for contact"],
-    },
-    phone: {
-      type: String,
-      required: [true, "Set phone for contact"],
-    },
-    favorite: {
-      type: Boolean,
-      default: false,
-    },
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: "user",
+      match: emailRegexp,
+      unique: true,
       required: true,
+    },
+    password: {
+      type: String,
+      minlength: 6,
+      required: true,
+    },
+    subscription: {
+      type: String,
+      enum: subscriptionList,
+      default: "starter",
+    },
+    token: {
+      type: String,
+      default: "",
     },
   },
   { versionKey: false, timestamps: true }
 );
 
-contactSchema.post("save", handleMongooseError);
+userSchema.post("save", handleMongooseError);
 
-const schemaAdd = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().required(),
-  phone: Joi.string().required(),
-  favorite: Joi.boolean(),
+const registerSchema = Joi.object({
+  email: Joi.string().pattern(emailRegexp).required(),
+  password: Joi.string().min(6).required(),
 });
 
-const updateFavoriteSchema = Joi.object({
-  favorite: Joi.boolean()
-    .required()
-    .messages({ "any.required": "missing field favorite" }),
+const loginSchema = Joi.object({
+  email: Joi.string().pattern(emailRegexp).required(),
+  password: Joi.string().min(6).required(),
 });
 
-const schemaUpd = Joi.object({
-  name: Joi.string(),
-  email: Joi.string(),
-  phone: Joi.string(),
+const updateSubscriptionSchema = Joi.object({
+  subscription: Joi.string()
+    .valid(...subscriptionList)
+    .required(),
 });
 
-const Contact = model("contact", contactSchema);
-const schemas = { schemaAdd, schemaUpd, updateFavoriteSchema };
+const schemas = {
+  registerSchema,
+  loginSchema,
+  updateSubscriptionSchema,
+};
+const User = model("user", userSchema);
 
 module.exports = {
-  Contact,
+  User,
   schemas,
 };
